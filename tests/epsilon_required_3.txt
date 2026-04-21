@@ -1,0 +1,19 @@
+
+(
+(
+(a, b, c, d, e, f),
+(q0, q1, q2, q3, q4),
+q0,
+(q4),
+(
+    (q0, a, q1),
+    (q0, d, q2),
+    (q1, b, q1),
+    (q1, c, q3),
+    (q2, e, q2),
+    (q2, f, q3),
+    (q3, ε, q4)
+)
+),
+(abbbbbbbc, abdef, deeeeef)
+)

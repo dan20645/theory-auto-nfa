@@ -1,0 +1,15 @@
+regular_1.txt:(accepted, accepted, rejected)
+regular_2.txt:(rejected, accepted, rejected, accepted)
+regular_3.txt:(accepted, rejected, accepted)
+
+epsilon_useless_1.txt:(accepted, accepted, rejected)
+epsilon_useless_2.txt:(rejected, accepted, rejected, accepted)
+epsilon_useless_3.txt:(accepted, rejected, accepted)
+
+epsilon_required_1.txt:(accepted, accepted, rejected)
+epsilon_required_2.txt:(rejected, accepted, rejected, accepted)
+epsilon_required_3.txt:(accepted, rejected, accepted)
+
+one_node.txt:(accepted, accepted, rejected)
+
+loop.txt:(accepted, accepted, accepted)

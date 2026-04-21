@@ -1,0 +1,17 @@
+
+(
+(
+(a, b, c),
+(q0, q1, q2),
+q0,
+(q2),
+(
+    (q0, a, q1),
+    (q1, a, q1),
+    (q1, b, q1),
+    (q1, c, q1),
+    (q1, c, q2)
+)
+),
+(bababababac, abababababac, ababababab, abcabababac)
+)
