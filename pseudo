@@ -1,0 +1,235 @@
+CLASS NFA
+
+    FUNCTION initialize(nfaTuple)
+        alphabet = nfaTuple[0]
+        states = nfaTuple[1]
+        start = nfaTuple[2]
+        endStates = nfaTuple[3]
+        transitions = nfaTuple[4]
+
+        transitionsByState = dictionary dict
+
+        FOR each state IN states
+            transitionsByState[state] = empty list
+        END FOR
+
+        FOR each transition IN transitions
+            state = transition[0]
+            append transition TO transitionsByState[state]
+        END FOR
+    END FUNCTION
+
+
+    FUNCTION from_file(path)
+        open file at path
+        read file contents into fileContent
+
+        parsedTuple = parseTuple(fileContent)
+
+        RETURN new NFA(parsedTuple[0]), parsedTuple[1]
+    END FUNCTION
+
+
+    FUNCTION parseTuple(tupleString)
+        result = empty list
+
+        strip spaces and newlines from tupleString
+
+        IF first character is not "("
+            print error message
+            terminate program, exit code 1
+        END IF
+
+        tupleClosed = FALSE
+        index = 0
+        charIndex = 1
+
+        WHILE tupleClosed = FALSE
+            nextChar = tupleString[charIndex]
+
+            IF nextChar = "(" THEN
+				nestedTupleEndIndex = 0
+                depth = 0
+
+                FOR i from charIndex to end of tupleString
+                    IF tupleString[i] = "("
+                        depth = depth + 1
+                    ELSE IF tupleString[i] = ")"
+                        depth = depth - 1
+                    END IF
+
+                    IF depth = 0
+                        nestedTupleEndIndex = i
+                        BREAK
+                    END IF
+                END FOR
+
+				#########################################################
+                nestedTuple = substring(charIndex, nestedTupleEndIndex + 1)
+                append parseTuple(nestedTuple) TO result
+                charIndex = nestedTupleEndIndex
+				#########################################################
+
+            ELSE IF nextChar = ","
+                index = index + 1
+
+            ELSE IF nextChar = ")"
+                tupleClosed = TRUE
+
+            ELSE
+                IF index >= length(result)
+                    append empty string TO result
+                END IF
+
+                result[index] = result[index] + nextChar
+            END IF
+
+            charIndex = charIndex + 1
+        END WHILE
+
+        RETURN result
+    END FUNCTION
+
+	############################################# Epsilon Enclosure Idea ###############################################################
+	
+	FUNCTION epsilonClosure(stateSet)
+		closure = stateSet
+		stack = states in stateSet
+
+		WHILE stack is not empty
+			currentState = POP(stack)
+
+			FOR each transition IN transitionsByState[currentState]
+				IF transition symbol = ε
+					nextState = transition destination
+
+					IF nextState NOT IN closure THEN
+						add nextState TO closure
+						PUSH nextState ONTO stack
+					END IF
+				END IF
+			END FOR
+		END WHILE
+
+		RETURN closure
+	END FUNCTION
+
+	#####################################################################################################################################
+
+
+    FUNCTION tryAccept(inputString)
+        accepted = FALSE
+        charIndex = 0
+        alternatePathsStack = empty stack
+        currentState = start
+
+
+        FUNCTION isAccepted()
+            RETURN (
+                charIndex = length(inputString)
+                AND currentState IN endStates
+            )
+        END FUNCTION
+
+
+        FUNCTION backtrack()
+            path = pop top of alternatePathsStack
+            currentState = path[0]
+            charIndex = path[1]
+            accepted = isAccepted()
+        END FUNCTION
+
+
+        WHILE NOT accepted AND (charIndex < length(inputString) OR alternatePathsStack not empty)
+
+            IF charIndex >= length(inputString)
+                backtrack()
+                CONTINUE
+            END IF
+
+            nextChar = inputString[charIndex]
+
+            validTransitions = empty list
+
+            FOR each transition IN transitionsByState[currentState]
+                IF transition[1] = nextChar OR transition[1] = ε
+                    append transition TO validTransitions
+                END IF
+            END FOR
+			
+			numValidTransitions = length of validTransitions
+
+            IF validTransitions is not empty
+                chosenTransition = NULL
+
+                FOR each transition IN validTransitions
+                    IF transition[1] != ε
+                        chosenTransition = transition
+                        BREAK
+                    END IF
+                END FOR
+
+                IF chosenTransition = NULL
+                    chosenTransition = validTransitions[0]
+                END IF
+
+                currentState = chosenTransition[2]
+
+                IF chosenTransition symbol != ε
+                    charIndex = charIndex + 1
+                END IF
+
+                accepted = isAccepted()
+
+                FOR each remaining transition
+                    push (validTransitions[i][2], charIndex) onto stack
+                END FOR
+
+            ELSE IF stack not empty
+                backtrack()
+
+            ELSE
+                charIndex = length(inputString)
+            END IF
+        END WHILE
+
+        RETURN accepted
+    END FUNCTION
+END CLASS
+
+FUNCTION manual()
+    prompt user for file name and store in fileName
+
+    nfa, beta = NFA.from_file(fileName)
+
+    IF beta is empty
+        LOOP forever
+            prompt user for input string and store in inputString
+
+            IF inputString is empty
+                BREAK
+            END IF
+
+            IF nfa.tryAccept(input string)
+                print "Accepted"
+            ELSE
+                print "Rejected"
+            END IF
+        END LOOP
+
+        print "Bye bye"
+
+    ELSE
+        results = empty list
+
+        FOR each inputString IN beta
+            IF nfa.tryAccept(inputString)
+                append "accepted" TO results
+            ELSE
+                append "rejected" TO results
+            END IF
+        END FOR
+
+        print results as tuple
+    END IF
+END FUNCTION
