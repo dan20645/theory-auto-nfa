@@ -111,6 +111,7 @@ class NFA:
         charIndex = 0
         alternatePathsStack = []
         currentState = self.start
+        statesSinceEpsilon = []
 
         # HELPERS
 
@@ -142,20 +143,31 @@ class NFA:
 
         # Loop through all the paths until we have 
         # an accepted configuration or are out of paths
-        while (not accepted and (charIndex < len(inputString) or len(alternatePathsStack) > 0)):
+        temp = True
+        while (not accepted and (temp or charIndex < len(inputString) or len(alternatePathsStack) > 0)):
+            temp = False
+
+            # Get epsilon transitions for currentState
+            validTransitions = []
+            for transition in self.transitionsByState[currentState]:
+                if (transition[1] == "ε"):
+                    validTransitions.append(transition)
+            numEpsilonTransitions = len(validTransitions)
             
-            if (charIndex >= len(inputString)):
+            if (charIndex >= len(inputString) and numEpsilonTransitions == 0):
                 # path exhausted, go back
                 backtrack()
                 continue
 
-            nextChar = inputString[charIndex]
+            # Get nextChar and valid transitions for currentState + nextChar
+            nextChar = ""
+            if charIndex < len(inputString):
+                nextChar = inputString[charIndex]
+                
+                for transition in self.transitionsByState[currentState]:
+                    if (transition[1] == nextChar):
+                        validTransitions.append(transition)
 
-            # Get valid transitions for currentState + nextChar
-            validTransitions = []
-            for transition in self.transitionsByState[currentState]:
-                if (transition[1] == nextChar or transition[1] == "ε"):
-                    validTransitions.append(transition)
             numValidTransitions = len(validTransitions)
 
             #  Transitions? Choose one and put the rest back
@@ -173,7 +185,12 @@ class NFA:
                 # print(f"Chosen transition: ({chosenTransition[0]}, {chosenTransition[1], {chosenTransition[2]}})")
 
                 currentState = chosenTransition[2]
-                if chosenTransition[1] != "ε":
+                if chosenTransition[1] == "ε":
+                    statesSinceEpsilon.append(chosenTransition[0])
+                    if chosenTransition[2] in statesSinceEpsilon:
+                        backtrack()
+                else:
+                    statesSinceEpsilon.clear()
                     charIndex += 1
                 accepted = isAccepted()
 
