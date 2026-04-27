@@ -135,6 +135,11 @@ class NFA:
 
         # LOGIC
 
+        # Set initial accepted state, useful for the special
+        # case where the start state is accepting and
+        # inputString is empty
+        accepted = isAccepted()
+
         # Loop through all the paths until we have 
         # an accepted configuration or are out of paths
         while (not accepted and (charIndex < len(inputString) or len(alternatePathsStack) > 0)):
@@ -188,6 +193,23 @@ class NFA:
 
         return accepted
 
+# ===
+# UTILITY FUNCTIONS
+# ===
+
+"""
+    Parses an input string into a format suitable
+    to be fed to an NFA.
+    This currently returns an empty string if the
+    input string == "ε", otherwise it returns the
+    unmodified input string.
+"""
+def parseString(s: str):
+    result = s
+    if (s == "ε"):
+        result = ""
+    return result
+
 # ====
 # MAIN
 # ====
@@ -204,7 +226,8 @@ def manual():
         while True:
             inputString = input("Please input a string: ")
             if (inputString == ""): break
-            match nfa.tryAccept(inputString):
+            parsedString = parseString(inputString)
+            match nfa.tryAccept(parsedString):
                 case True:
                     print("Accepted.")
                 case False:
@@ -215,7 +238,8 @@ def manual():
     else:
         results = []
         for inputString in beta:
-            match nfa.tryAccept(inputString):
+            parsedString = parseString(inputString)
+            match nfa.tryAccept(parsedString):
                 case True:
                     results.append("accepted")
                 case False:
@@ -231,7 +255,8 @@ def run_tests():
             nfa, beta = NFA.from_file(f"tests\\{testNameResult[0]}")
             results = []
             for inputString in beta:
-                match nfa.tryAccept(inputString):
+                parsedString = parseString(inputString)
+                match nfa.tryAccept(parsedString):
                     case True:
                         results.append("accepted")
                     case False:
