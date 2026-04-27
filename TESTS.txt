@@ -9,6 +9,7 @@ epsilon_useless_3.txt:(accepted, rejected, accepted)
 epsilon_required_1.txt:(accepted, accepted, rejected)
 epsilon_required_2.txt:(rejected, accepted, rejected, accepted)
 epsilon_required_3.txt:(accepted, rejected, accepted)
+epsilon_required_4.txt:(accepted)
 
 one_node.txt:(accepted, accepted, rejected)
 
