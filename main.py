@@ -96,6 +96,37 @@ class NFA:
             charIndex += 1
 
         return result
+    
+    def epsilonClosure(self, stateSet: set[str]) -> set[str]:
+        """
+        Pushes all states connected to current state by epsilon transitions
+        onto a stack to track all available next states from current state
+        """
+        
+        # Closure set to store all available states
+        # Stack list to store current states available to trace through transitions
+        closure = set(stateSet)
+        stack = list(stateSet)
+            
+        # While the stack is not empty, we trace through all available states
+        # Start by popping top of stack into currentState variable
+        while stack:
+            currentState = stack.pop()
+            
+            # Grabbing each symbol and state pairs for currentState
+            for transition in self.transitionsByState[currentState]:
+                symbol = transition[1]
+                nextState = transition[2]
+                
+                # If epsilon transition is found and nextState is not in closure set
+                # Add nextState to closure set and stack list
+                if symbol == "ε" and nextState not in closure:
+                    closure.add(nextState)
+                    stack.append(nextState)
+                            
+        # Return closure set full of all available states from current state
+        # Across an epsilon transition
+        return closure
 
     def tryAccept(self, inputString: str) -> bool:
         """
@@ -105,88 +136,26 @@ class NFA:
 
         # print("\nTESTING STRING: ", inputString)
 
-        # VARIABLES
-
-        accepted = False
-        charIndex = 0
-        alternatePathsStack = []
-        currentState = self.start
-
-        # HELPERS
-
-        # Determine whether the current state is accepted or not
-        def isAccepted():
-            nonlocal charIndex, inputString, currentState, self
-            # print(f"Checking acceptance at: ({currentState}, {inputString[charIndex:]})")
-            # print(f"\tAvailable transitions:")
-            # for transition in self.transitionsByState[currentState]:
-            #     print(f"\t\t{transition}")
-            # print("\n")
-            return (charIndex == len(inputString) and currentState in self.endStates)
-
-        # Back up and choose a different path to follow, 
-        # in case the prior was not accepted
-        def backtrack():
-            nonlocal accepted, charIndex, currentState
-            path = alternatePathsStack.pop()
-            currentState = path[0]
-            charIndex = path[1]
-            accepted = isAccepted()
-
-        # LOGIC
-
-        # Loop through all the paths until we have 
-        # an accepted configuration or are out of paths
-        while (not accepted and (charIndex < len(inputString) or len(alternatePathsStack) > 0)):
+        # Begin by closing epsilon transitions for the start state
+        currentStates = self.epsilonClosure({self.start})
+        
+        for char in inputString:
+            nextStates = set()
             
-            if (charIndex >= len(inputString)):
-                # path exhausted, go back
-                backtrack()
-                continue
+            # Move on the current character
+            for state in currentStates:
+                for transition in self.transitionsByState[state]:
+                    symbol = transition[1]
+                    destination = transition[2]
+                    
+                    if symbol == char:
+                        nextStates.add(destination)
+            
+            # Expand through epsilon transitions
+            currentStates = self.epsilonClosure(nextStates)
 
-            nextChar = inputString[charIndex]
-
-            # Get valid transitions for currentState + nextChar
-            validTransitions = []
-            for transition in self.transitionsByState[currentState]:
-                if (transition[1] == nextChar or transition[1] == "ε"):
-                    validTransitions.append(transition)
-            numValidTransitions = len(validTransitions)
-
-            #  Transitions? Choose one and put the rest back
-            if (numValidTransitions > 0):
-
-                chosenTransition = None
-
-                # Carry out first non-ε transition, or ε transition if it is all we have
-                for transition in validTransitions:
-                    if transition[1] != "ε":
-                        chosenTransition = transition
-                        break
-                if chosenTransition == None: chosenTransition = validTransitions[0]
-
-                # print(f"Chosen transition: ({chosenTransition[0]}, {chosenTransition[1], {chosenTransition[2]}})")
-
-                currentState = chosenTransition[2]
-                if chosenTransition[1] != "ε":
-                    charIndex += 1
-                accepted = isAccepted()
-
-                # Save remaining transitions on alternate paths stack
-                for i in range(1, numValidTransitions):
-                    alternatePathsStack.append(
-                        (validTransitions[i][2], charIndex)
-                    )
-                
-            # No transitions? Go back to another path
-            elif (len(alternatePathsStack) > 0):
-                backtrack()
-
-            # No valid transitions despite characters remaining
-            else:
-                charIndex = len(inputString)
-
-        return accepted
+        # Accept if ANY current state is an end state
+        return any(state in self.endStates for state in currentStates)
 
 # ====
 # MAIN
