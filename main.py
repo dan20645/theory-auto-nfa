@@ -1,3 +1,17 @@
+"""
+    Python implementation of non-deterministic
+    finite automata (NFA). NFAs are read from
+    text files and instantiated into objects.
+
+    Created by Group 9 in the Spring 2026 CS
+    3383-002 class:
+    - Andrew Else
+    - Cole Daniel
+    - Logan Austill
+    - Muhammad Munir Leghari
+    
+    April 2026
+"""
 
 class NFA:
     """
