@@ -266,7 +266,7 @@ def parseString(s: str):
 # MAIN
 # ====
 
-def manual():
+def main():
     # Get file path as user input and open file
     fileName : str = input("Please input the file name: ")
 
@@ -298,40 +298,5 @@ def manual():
                     results.append("rejected")
         print("(" + ", ".join(results) + ")")
 
-def run_tests():
-    testList = open("TESTS.txt", "r").readlines()
-    for line in testList:
-        if line != "" and line != "\n":
-            testNameResult = line.split(":")
-            print(f"TEST {testNameResult[0]}:")
-            nfa, beta = NFA.from_file(f"tests\\{testNameResult[0]}")
-            results = []
-            for inputString in beta:
-                parsedString = parseString(inputString)
-                match nfa.tryAccept(parsedString):
-                    case True:
-                        results.append("accepted")
-                    case False:
-                        results.append("rejected")
-            strResult = "(" + ", ".join(results) + ")"
-            if strResult == testNameResult[1][:-1]:
-                print("\tTEST PASSED\n")
-            else:
-                print(f"\tTEST FAILED:\n\t\t{strResult}\n\t\t{testNameResult[1]}\n")
-
 if __name__ == "__main__":
-    print("""
-1. Run automated tests
-2. Run manually
-(anything else). Exit
-
-TODO: delete this intro before turning in      
-    """)
-    userIn = input("> ")
-    match userIn:
-        case "1":
-            run_tests()
-        case "2":
-            manual()
-        case _:
-            pass
+    main()
