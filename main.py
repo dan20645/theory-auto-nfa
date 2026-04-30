@@ -44,8 +44,12 @@ class NFA:
 
     def from_file(path: str) -> tuple['NFA', list]:
         # Read content from file
-        fileRef = open(path, "r", encoding="utf-8")
-        fileCon = fileRef.read()
+        try:
+            fileRef = open(path, "r", encoding="utf-8")
+            fileCon = fileRef.read()
+        except:
+            print("Invalid file: ", path)
+            exit(1)
         
         # Parse content to list
         # parsedTuple[0] -> the NFA
